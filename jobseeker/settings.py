@@ -9,6 +9,7 @@ import os
 from dotenv import load_dotenv
 import dj_database_url, psycopg2
 from urllib.parse import urlparse, parse_qsl
+from datetime import timedelta
 
 
 # Load environment variables from .env
@@ -21,8 +22,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY SETTINGS
 SECRET_KEY = os.getenv('SECRET_KEY')
 DEBUG = os.getenv('DEBUG', 'True') == 'True'
-ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "localhost").split(",")
+ALLOWED_HOSTS = ['*']
 
+
+    
 
 # APPLICATIONS
 INSTALLED_APPS = [
@@ -35,6 +38,8 @@ INSTALLED_APPS = [
 
     # Third-party apps
     'rest_framework',
+    'rest_framework_simplejwt',
+    'users', 
 
     
 ]
@@ -74,15 +79,15 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'jobseeker.wsgi.application'
 
-tmpPostgres = urlparse(os.getenv("DATABASE_URL"))
+db_url = os.getenv("DATABASE_URL")
 
 DATABASES = {
-    'default': dj_database_url.config(
-        default=os.getenv("DATABASE_URL"),  # Render/Neon will set this automatically
-        conn_max_age=600,  # keeps connections alive for performance
-        ssl_require=True   # required by Neon
-    )
-}
+        'default': dj_database_url.config(
+            default=db_url,
+            conn_max_age=600,
+            ssl_require=os.getenv("DATABASE_SSL", "False") == "True" and not DEBUG
+        )
+    }
 
 
 # PASSWORD VALIDATION
@@ -120,4 +125,12 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.AllowAny',
     ],
+}
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
+    'ROTATE_REFRESH_TOKENS': True,
+    'BLACKLIST_AFTER_ROTATION': True,
+    'AUTH_HEADER_TYPES': ('Bearer',),
 }
