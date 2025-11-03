@@ -77,15 +77,11 @@ WSGI_APPLICATION = 'jobseeker.wsgi.application'
 tmpPostgres = urlparse(os.getenv("DATABASE_URL"))
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': tmpPostgres.path.replace('/', ''),
-        'USER': tmpPostgres.username,
-        'PASSWORD': tmpPostgres.password,
-        'HOST': tmpPostgres.hostname,
-        'PORT': 5432,
-        'OPTIONS': dict(parse_qsl(tmpPostgres.query)),
-    }
+    'default': dj_database_url.config(
+        default=os.getenv("DATABASE_URL"),  # Render/Neon will set this automatically
+        conn_max_age=600,  # keeps connections alive for performance
+        ssl_require=True   # required by Neon
+    )
 }
 
 
