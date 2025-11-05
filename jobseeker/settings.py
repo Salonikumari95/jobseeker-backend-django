@@ -132,3 +132,7 @@ SIMPLE_JWT = {
     'BLACKLIST_AFTER_ROTATION': True,
     'AUTH_HEADER_TYPES': ('Bearer',),
 }
+AUTHENTICATION_BACKENDS = [
+    'users.backends.EmailBackend',  # <-- custom backend for email login
+    'django.contrib.auth.backends.ModelBackend',
+]
