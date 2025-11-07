@@ -36,6 +36,9 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
+    # cloudinary for media management
+    'cloudinary',
+    'cloudinary_storage',
     # Third-party apps
     'rest_framework',
     'rest_framework_simplejwt',
@@ -136,3 +139,13 @@ AUTHENTICATION_BACKENDS = [
     'users.backends.EmailBackend',  # <-- custom backend for email login
     'django.contrib.auth.backends.ModelBackend',
 ]
+
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': os.getenv('CLOUDINARY_CLOUD_NAME'),
+    'API_KEY': os.getenv('CLOUDINARY_API_KEY'),
+    'API_SECRET': os.getenv('CLOUDINARY_API_SECRET'),
+}
+
+DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
