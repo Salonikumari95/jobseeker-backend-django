@@ -56,9 +56,35 @@ class EmailTokenObtainPairSerializer(TokenObtainPairSerializer):
 
 
 class UserProfileSerializer(serializers.ModelSerializer):
+    profile_image_url = serializers.SerializerMethodField()
+    education_image_url = serializers.SerializerMethodField()
+    resume_image_url = serializers.SerializerMethodField()
+    cv_url = serializers.SerializerMethodField()
     class Meta:
         model = UserProfile
-        fields = [
-            'profile_image', 'experience', 'education_text', 'education_image',
-            'skills', 'languages', 'resume', 'resume_image','role'
+        fields= [
+            "profile_image_url",
+            "education_image_url",
+            "resume_image_url",
+            "cv_url",
+            "profile_image",
+            "education_image",
+            "resume_image",
+            "cv",
+            "experience",
+            "education_text",
+            "skills",
+            "languages",
+            "role",
         ]
+
+    def get_profile_image_url(self, obj):
+        return obj.profile_image.url if obj.profile_image else None
+
+    def get_education_image_url(self, obj):
+        return obj.education_image.url if obj.education_image else None
+
+    def get_resume_image_url(self, obj):
+        return obj.resume_image.url if obj.resume_image else None
+    def get_cv_url(self, obj):
+        return obj.cv.url if obj.cv else None
