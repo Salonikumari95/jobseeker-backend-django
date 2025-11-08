@@ -37,7 +37,7 @@ class UserProfileView(generics.RetrieveUpdateAPIView):
     
 class EmailLoginView(TokenObtainPairView):
     serializer_class = EmailTokenObtainPairSerializer
-
+    
     def post(self, request, *args, **kwargs):
         response = super().post(request, *args, **kwargs)
         user = self.serializer_class.get_user( request.data)
@@ -56,8 +56,7 @@ class EmailLoginView(TokenObtainPairView):
                 "education_image": profile.education_image.url if profile.education_image else None,
                 "skills": profile.skills,
                 "languages": profile.languages,
-                "cv": profile.cv.url if profile.resume else None,
-                "resume_image": profile.resume_image.url if profile.resume_image else None,
+                "cv": profile.cv.url if profile.cv else None,
                 "role": profile.role,
             }
             user_data["profile"] = profile_data

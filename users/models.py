@@ -19,7 +19,7 @@ class UserProfile(models.Model):
     role = models.CharField(max_length=50, blank=True, null=True)
     profile_image = CloudinaryField('image', blank=True, null=True)
     education_image = CloudinaryField('image', blank=True, null=True)
-    resume_image = CloudinaryField('image', blank=True, null=True)
+
     
    
 
