@@ -1,11 +1,14 @@
-from rest_framework import generics, permissions
+from rest_framework import generics, permissions,status
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
-from .serializers import RegisterSerializer, EmailTokenObtainPairSerializer
+from .serializers import RegisterSerializer, EmailTokenObtainPairSerializer,UserProfileSerializer
 from django.contrib.auth.models import User
 from rest_framework_simplejwt.views import TokenObtainPairView
 from .models import UserProfile
-from .serializers import UserProfileSerializer
+
+from rest_framework.views import APIView
+from rest_framework.permissions import IsAuthenticated
+from rest_framework_simplejwt.exceptions import TokenError
 
 class RegisterView(generics.CreateAPIView):
     queryset = User.objects.all()
@@ -20,7 +23,8 @@ class RegisterView(generics.CreateAPIView):
         return Response({
             "user": {
                 "full_name": f"{user.first_name} {user.last_name}",
-                "email": user.email
+                "email": user.email,
+                "role": user.profile.role if hasattr(user, 'profile') else None,
             },
             "refresh": str(refresh),
             "access": str(refresh.access_token),
@@ -69,3 +73,18 @@ class EmailLoginView(TokenObtainPairView):
             "refresh": response.data["refresh"],
             "access": response.data["access"],
         })
+
+
+class LogoutView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        try:
+            refresh_token = request.data["refresh"]
+            token = RefreshToken(refresh_token)
+            token.blacklist()
+            return Response(status=status.HTTP_205_RESET_CONTENT)
+        except KeyError:
+            return Response({"detail": "Refresh token required."}, status=status.HTTP_400_BAD_REQUEST)
+        except TokenError:
+            return Response({"detail": "Invalid token."}, status=status.HTTP_400_BAD_REQUEST)

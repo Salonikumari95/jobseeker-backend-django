@@ -1,18 +1,116 @@
-from rest_framework import generics, permissions, filters
-from rest_framework.parsers import MultiPartParser, FormParser
-from .models import JobPost
-from .serializers import JobPostSerializer
 
+from rest_framework import generics
+from rest_framework.exceptions import NotFound
+from .serializers import JobPostSerializer, JobApplicationSerializer
+from users.permissions import IsRecruiter
+from users.permissions import IsJobSeeker
+from rest_framework import generics, filters
+from .models import JobPost, JobApplication
+from .permisions import IsAuthorOrReadOnly, IsApplicantOrReadOnly
+from rest_framework.exceptions import PermissionDenied
+from rest_framework.exceptions import ValidationError
 
-class JobPostListCreateView(generics.ListCreateAPIView):
-    queryset = JobPost.objects.all().order_by('-created_at')
+class JobPostCreateView(generics.CreateAPIView):
+    queryset = JobPost.objects.all()
     serializer_class = JobPostSerializer
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
-    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
-    search_fields = ['title', 'location', 'company']
-    ordering_fields = ['created_at', 'title']
+    permission_classes = [IsRecruiter]
+    def perform_create(self, serializer):
+        user = self.request.user
+        serializer.save(
+            author=user,
+            author_email=user.email,
+            author_name=f"{user.first_name} {user.last_name}".strip() or user.username
+        )
 
-    parser_classes = (MultiPartParser, FormParser,)
+class JobPostListView(generics.ListAPIView):
+    queryset = JobPost.objects.all()
+    serializer_class = JobPostSerializer
+    filter_backends = [filters.SearchFilter]
+    search_fields = ['job_title',
+                      'location',
+                      'company_name',
+                      'category',
+                      'job_tags',
+                      'required_skills',
+                      'required_education',
+                      'required_languages',
+                      'required_experience',
+                      'job_type',
+                      'salary'] 
+
+
+class JobApplicationCreateView(generics.CreateAPIView):
+    queryset = JobApplication.objects.all()
+    serializer_class = JobApplicationSerializer
+    permission_classes = [IsJobSeeker]
 
     def perform_create(self, serializer):
-        serializer.save(author=self.request.user)
+        user = self.request.user
+        job = serializer.validated_data['job']
+       
+        if JobApplication.objects.filter(applicant=user, job=job).exists():
+            
+            raise ValidationError("You have already applied to this job.")
+        serializer.save(applicant=user)
+
+class JobApplicationUpdateView(generics.UpdateAPIView):
+    queryset = JobApplication.objects.all()
+    serializer_class = JobApplicationSerializer
+    permission_classes = [IsRecruiter]
+    permission_classes = [IsAuthorOrReadOnly]
+
+    def get_object(self):
+        obj = super().get_object()
+        if obj.job.author != self.request.user:
+            raise PermissionDenied("You are not allowed to update this application.")
+        return obj
+
+class JobPostUpdateView(generics.RetrieveUpdateAPIView):
+    queryset = JobPost.objects.all()
+    serializer_class = JobPostSerializer
+    permission_classes = [IsAuthorOrReadOnly]
+    def get_object(self):
+        obj = super().get_object()
+        if obj.author != self.request.user:
+            raise PermissionDenied("You are not allowed to update this job post.")
+        return obj
+
+class JobPostDeleteView(generics.DestroyAPIView):
+    queryset = JobPost.objects.all()
+    serializer_class = JobPostSerializer
+    permission_classes = [IsAuthorOrReadOnly]
+    def get_object(self):
+        obj = super().get_object()
+        if obj.author != self.request.user:
+            raise PermissionDenied("You are not allowed to delete this job post.")
+        return obj
+
+class JobApplicationDeleteView(generics.DestroyAPIView):
+    queryset = JobApplication.objects.all()
+    serializer_class = JobApplicationSerializer
+    permission_classes = [IsApplicantOrReadOnly]
+     
+    
+    def get_object(self):
+        obj = super().get_object()
+        if obj.applicant != self.request.user:
+            raise PermissionDenied("You are not allowed to delete this application.")
+        return obj
+    
+
+
+class RecruiterJobApplicationsView(generics.ListAPIView):
+    serializer_class = JobApplicationSerializer
+    permission_classes = [IsAuthorOrReadOnly] 
+
+    def get_queryset(self):
+        job_id = self.kwargs['job_id']
+        try:
+            job = JobPost.objects.get(id=job_id)
+        except JobPost.DoesNotExist:
+            raise NotFound("Job not found.")
+
+        if job.author != self.request.user:
+            raise PermissionDenied("You are not allowed to view applications for this job.")
+
+        return JobApplication.objects.filter(job=job).order_by('-applied_at')
