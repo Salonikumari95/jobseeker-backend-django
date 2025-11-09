@@ -9,7 +9,7 @@ from django.conf import settings
 def send_welcome_email(sender, instance, created, **kwargs):
     if created:  # Sirf jab new user create ho
         subject = "Welcome to JobSeeker!"
-        message = f"Hi {instance.first_name},\n\nThank you for registering on JobSeeker portal. We are glad to have you on board!"
+        message = f"Hi {instance.username},\n\nThank you for registering on JobSeeker portal. We are glad to have you on board!"
         from_email = settings.EMAIL_HOST_USER
         recipient_list = [instance.email]
 
