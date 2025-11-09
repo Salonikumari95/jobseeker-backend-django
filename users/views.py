@@ -1,11 +1,11 @@
 from rest_framework import generics, permissions,status
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
-from .serializers import RegisterSerializer, EmailTokenObtainPairSerializer
+from .serializers import RegisterSerializer, EmailTokenObtainPairSerializer,UserProfileSerializer
 from django.contrib.auth.models import User
 from rest_framework_simplejwt.views import TokenObtainPairView
 from .models import UserProfile
-from .serializers import UserProfileSerializer
+
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.exceptions import TokenError
@@ -23,7 +23,8 @@ class RegisterView(generics.CreateAPIView):
         return Response({
             "user": {
                 "full_name": f"{user.first_name} {user.last_name}",
-                "email": user.email
+                "email": user.email,
+                "role": user.profile.role if hasattr(user, 'profile') else None,
             },
             "refresh": str(refresh),
             "access": str(refresh.access_token),
