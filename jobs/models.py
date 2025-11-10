@@ -23,7 +23,7 @@ STATUS_CHOICES = (
 )
 
 class JobPost(models.Model):
-    job_title = models.CharField(max_length=255)
+    title = models.CharField(max_length=255)
     job_description = models.TextField()
     location = models.CharField(max_length=100)
     company_name = models.CharField(max_length=255)
@@ -56,6 +56,7 @@ class JobApplication(models.Model):
     profile_image = CloudinaryField('profile_image')  
     applied_at = models.DateTimeField(auto_now_add=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
-
+    # make a unique together constraint to prevent multiple applications to the same job by the same user
     def __str__(self):
         return f"{self.full_name} applied for {self.job.title}"
+    # make a model to view my applications
