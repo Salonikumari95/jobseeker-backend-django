@@ -6,6 +6,7 @@ from .models import UserProfile
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from django.contrib.auth import get_user_model
 
+
 class RegisterSerializer(serializers.ModelSerializer):
     full_name = serializers.CharField(required=True)
     role = serializers.CharField(required=False, allow_blank=True) 
@@ -15,7 +16,7 @@ class RegisterSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = User
-        fields = ('full_name', 'email', 'password', 'password2','role')
+        fields = ('full_name', 'email', 'password', 'password2', 'role')
 
     def validate(self, attrs):
         if User.objects.filter(email=attrs['email']).exists():
@@ -43,6 +44,7 @@ class RegisterSerializer(serializers.ModelSerializer):
             profile.save()
         return user
 
+
 class EmailTokenObtainPairSerializer(TokenObtainPairSerializer):
     username_field = 'email'
 
@@ -60,9 +62,10 @@ class UserProfileSerializer(serializers.ModelSerializer):
     education_image_url = serializers.SerializerMethodField()
   
     cv_url = serializers.SerializerMethodField()
+    
     class Meta:
         model = UserProfile
-        fields= [
+        fields = [
             "profile_image_url",
             "education_image_url",
            
@@ -84,7 +87,17 @@ class UserProfileSerializer(serializers.ModelSerializer):
 
     def get_education_image_url(self, obj):
         return obj.education_image.url if obj.education_image else None
-
     
     def get_cv_url(self, obj):
         return obj.cv.url if obj.cv else None
+    
+    
+class RequestPasswordResetOTPSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+
+
+class PasswordResetSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    otp = serializers.CharField(max_length=6)
+    new_password = serializers.CharField(write_only=True, required=True, validators=[validate_password])
+    confirm_password = serializers.CharField(write_only=True, required=True)

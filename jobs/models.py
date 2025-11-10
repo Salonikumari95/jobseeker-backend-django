@@ -27,8 +27,8 @@ class JobPost(models.Model):
     job_description = models.TextField()
     location = models.CharField(max_length=100)
     company_name = models.CharField(max_length=255)
-    company_logo     = CloudinaryField('logo', blank=True, null=True)  
-    job_type     = models.CharField(max_length=20, choices=JOB_TYPE_CHOICES, default='full_time')
+    company_logo = CloudinaryField('Company logo', blank=True, null=True)  
+    job_type = models.CharField(max_length=20, choices=JOB_TYPE_CHOICES, default='full_time')
     salary = models.CharField(max_length=50, blank=True, null=True)  
     category = models.CharField(max_length=50, blank=True, null=True)
     job_tags = models.CharField(max_length=255, blank=True, null=True)  
@@ -41,9 +41,8 @@ class JobPost(models.Model):
     author_email = models.EmailField(blank=True, null=True)
     author_name = models.CharField(max_length=255, blank=True, null=True)
     
-    
     def __str__(self):
-        return self.title
+        return self.job_title
 
 
 class JobApplication(models.Model):
@@ -58,4 +57,4 @@ class JobApplication(models.Model):
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
 
     def __str__(self):
-        return f"{self.full_name} applied for {self.job.title}"
+        return f"{self.full_name} applied for {self.job.job_title}"
