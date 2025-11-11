@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+
+{% block sidebar %}
+<a href="{% url 'recruiter_dashboard' %}">Dashboard</a>
+<a href="{% url 'job-create' %}">Post Job</a>
+<a href="{% url 'my-posts' %}">Manage Jobs</a>
+<a href="#">Applicants</a>  {# You can link this to a view that shows applicants for all jobs #}
+<a href="{% url 'logout' %}">Logout</a>
+{% endblock %}
+
+{% block content %}
+<h2>Welcome {{ user_name }}!</h2>
+
+<h4>My Job Posts</h4>
+{% if jobs %}
+    <ul>
+        {% for job in jobs %}
+            <li>
+                {{ job.job_title }} at {{ job.company_name }} - 
+                <a href="{% url 'job-update' job.pk %}">Edit</a> | 
+                <a href="{% url 'job-delete' job.pk %}">Delete</a> | 
+                <a href="{% url 'job-applications-for-job' job.pk %}">View Applications</a>
+            </li>
+        {% endfor %}
+    </ul>
+{% else %}
+    <p>You have not posted any jobs yet.</p>
+{% endif %}
+{% endblock %}

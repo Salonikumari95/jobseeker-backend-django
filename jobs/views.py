@@ -4,7 +4,7 @@ from rest_framework.exceptions import NotFound
 from .serializers import JobPostSerializer, JobApplicationSerializer, BookmarkSerializer, MyApplicationDetailSerializer
 from rest_framework import filters
 from .models import JobPost, JobApplication, Bookmark
-from .permissions import IsAuthorOrReadOnly, IsApplicantOrReadOnly
+from .permisions import IsAuthorOrReadOnly, IsApplicantOrReadOnly
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.exceptions import ValidationError
 from users.permissions import IsRecruiter, IsJobSeeker

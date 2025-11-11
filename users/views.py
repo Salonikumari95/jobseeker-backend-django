@@ -1,4 +1,6 @@
 from rest_framework import generics, permissions, status
+from django.shortcuts import render, redirect
+from django.contrib.auth.decorators import login_required
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from .serializers import (
@@ -11,17 +13,20 @@ from .serializers import (
 from django.contrib.auth.models import User
 from rest_framework_simplejwt.views import TokenObtainPairView
 from .models import UserProfile
-
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.exceptions import TokenError
+
+from jobs.models import JobApplication, Bookmark, JobPost
 
 import random
 from django.utils import timezone
 from django.core.mail import send_mail
 from django.conf import settings
+from django.contrib.auth import logout
+from datetime import timedelta
 
-
+# ------------------- Register ------------------- #
 class RegisterView(generics.CreateAPIView):
     queryset = User.objects.all()
     permission_classes = [permissions.AllowAny]
@@ -42,7 +47,7 @@ class RegisterView(generics.CreateAPIView):
             "access": str(refresh.access_token),
         })
 
-
+# ------------------- User Profile ------------------- #
 class UserProfileView(generics.RetrieveUpdateAPIView):
     serializer_class = UserProfileSerializer
     permission_classes = [permissions.IsAuthenticated]
@@ -50,8 +55,8 @@ class UserProfileView(generics.RetrieveUpdateAPIView):
     def get_object(self):
         profile, created = UserProfile.objects.get_or_create(user=self.request.user)
         return profile
-    
-    
+
+# ------------------- Email Login ------------------- #
 class EmailLoginView(TokenObtainPairView):
     serializer_class = EmailTokenObtainPairSerializer
     
@@ -86,7 +91,7 @@ class EmailLoginView(TokenObtainPairView):
             "access": response.data["access"],
         })
 
-
+# ------------------- Logout ------------------- #
 class LogoutView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -101,7 +106,7 @@ class LogoutView(APIView):
         except TokenError:
             return Response({"detail": "Invalid token."}, status=status.HTTP_400_BAD_REQUEST)
 
-
+# ------------------- Request OTP ------------------- #
 class RequestPasswordResetOTPView(APIView):
     permission_classes = [permissions.AllowAny]
 
@@ -130,7 +135,7 @@ class RequestPasswordResetOTPView(APIView):
         except User.DoesNotExist:
             return Response({"detail": "User with this email does not exist."}, status=status.HTTP_400_BAD_REQUEST)
 
-
+# ------------------- Password Reset ------------------- #
 class PasswordResetView(APIView):
     permission_classes = [permissions.AllowAny]
 
@@ -152,7 +157,7 @@ class PasswordResetView(APIView):
             # Check OTP and expiration
             if profile.password_reset_otp != otp:
                 return Response({"otp": "Invalid OTP"}, status=status.HTTP_400_BAD_REQUEST)
-            if profile.otp_expired():
+            if profile.otp_created_at and timezone.now() > profile.otp_created_at + timedelta(minutes=2):
                 return Response({"otp": "OTP has expired"}, status=status.HTTP_400_BAD_REQUEST)
 
             # Set new password
@@ -168,3 +173,31 @@ class PasswordResetView(APIView):
 
         except User.DoesNotExist:
             return Response({"detail": "User with this email does not exist."}, status=status.HTTP_400_BAD_REQUEST)
+
+# ------------------- Seeker Dashboard ------------------- #
+@login_required
+def seeker_dashboard(request):
+    user = request.user
+    bookmarks = Bookmark.objects.filter(user=user)
+    applications = JobApplication.objects.filter(applicant=user)
+    return render(request, "dashboard/seeker-dashboard.html", {
+        "user_name": user.first_name or user.username,
+        "bookmarks": bookmarks,
+        "applications": applications,
+    })
+
+# ------------------- Recruiter Dashboard ------------------- #
+@login_required
+def recruiter_dashboard(request):
+    user = request.user
+    jobs = JobPost.objects.filter(author=user)
+    return render(request, "dashboard/recruiter-dashboard.html", {
+        "user_name": user.first_name or user.username,
+        "jobs": jobs,
+    })
+
+# ------------------- Logout View ------------------- #
+@login_required
+def template_logout(request):
+    logout(request)
+    return redirect('/auth/login/')

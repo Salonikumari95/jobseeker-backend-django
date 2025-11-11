@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+
+{% block sidebar %}
+<a href="{% url 'seeker_dashboard' %}">Dashboard</a>
+<a href="{% url 'user-profile' %}">My Profile</a>
+<a href="{% url 'my-bookmarks' %}">Saved Jobs</a>
+<a href="{% url 'my-applications' %}">My Applications</a>
+<a href="{% url 'logout' %}">Logout</a>
+{% endblock %}
+
+{% block content %}
+<h2>Welcome {{ user_name }}!</h2>
+
+<h4>Saved Jobs</h4>
+{% if bookmarks %}
+    <ul>
+        {% for bookmark in bookmarks %}
+            <li>{{ bookmark.job.job_title }} at {{ bookmark.job.company_name }}</li>
+        {% endfor %}
+    </ul>
+{% else %}
+    <p>You have no saved jobs.</p>
+{% endif %}
+
+<h4>My Applications</h4>
+{% if applications %}
+    <ul>
+        {% for application in applications %}
+            <li>{{ application.job.job_title }} at {{ application.job.company_name }} - Status: {{ application.status }}</li>
+        {% endfor %}
+    </ul>
+{% else %}
+    <p>You have not applied to any jobs yet.</p>
+{% endif %}
+{% endblock %}
