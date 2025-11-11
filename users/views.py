@@ -26,7 +26,7 @@ from django.conf import settings
 from django.contrib.auth import logout
 from datetime import timedelta
 
-# ------------------- Register ------------------- #
+
 class RegisterView(generics.CreateAPIView):
     queryset = User.objects.all()
     permission_classes = [permissions.AllowAny]
@@ -47,7 +47,7 @@ class RegisterView(generics.CreateAPIView):
             "access": str(refresh.access_token),
         })
 
-# ------------------- User Profile ------------------- #
+
 class UserProfileView(generics.RetrieveUpdateAPIView):
     serializer_class = UserProfileSerializer
     permission_classes = [permissions.IsAuthenticated]
@@ -56,7 +56,7 @@ class UserProfileView(generics.RetrieveUpdateAPIView):
         profile, created = UserProfile.objects.get_or_create(user=self.request.user)
         return profile
 
-# ------------------- Email Login ------------------- #
+
 class EmailLoginView(TokenObtainPairView):
     serializer_class = EmailTokenObtainPairSerializer
     
@@ -91,7 +91,7 @@ class EmailLoginView(TokenObtainPairView):
             "access": response.data["access"],
         })
 
-# ------------------- Logout ------------------- #
+
 class LogoutView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -106,7 +106,7 @@ class LogoutView(APIView):
         except TokenError:
             return Response({"detail": "Invalid token."}, status=status.HTTP_400_BAD_REQUEST)
 
-# ------------------- Request OTP ------------------- #
+
 class RequestPasswordResetOTPView(APIView):
     permission_classes = [permissions.AllowAny]
 
@@ -139,7 +139,7 @@ class RequestPasswordResetOTPView(APIView):
         except User.DoesNotExist:
             return Response({"detail": "User with this email does not exist."}, status=status.HTTP_400_BAD_REQUEST)
 
-# ------------------- Password Reset ------------------- #
+
 class PasswordResetView(APIView):
     permission_classes = [permissions.AllowAny]
 
@@ -178,7 +178,7 @@ class PasswordResetView(APIView):
         except User.DoesNotExist:
             return Response({"detail": "User with this email does not exist."}, status=status.HTTP_400_BAD_REQUEST)
 
-# ------------------- Seeker Dashboard ------------------- #
+
 @login_required
 def seeker_dashboard(request):
     user = request.user
@@ -190,7 +190,7 @@ def seeker_dashboard(request):
         "applications": applications,
     })
 
-# ------------------- Recruiter Dashboard ------------------- #
+
 @login_required
 def recruiter_dashboard(request):
     user = request.user
@@ -200,7 +200,7 @@ def recruiter_dashboard(request):
         "jobs": jobs,
     })
 
-# ------------------- Logout View ------------------- #
+
 @login_required
 def template_logout(request):
     logout(request)
