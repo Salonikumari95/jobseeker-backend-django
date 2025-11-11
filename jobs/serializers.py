@@ -1,5 +1,6 @@
 from rest_framework import serializers
-from .models import JobPost, JobApplication
+from .models import JobPost, JobApplication, Bookmark
+from django.contrib.auth.models import User
 from users.models import UserProfile
 from cloudinary.models import CloudinaryField
 
@@ -7,7 +8,7 @@ class JobPostSerializer(serializers.ModelSerializer):
     company_logo_url = serializers.SerializerMethodField()
     class Meta:
         model = JobPost
-        fields = ['id','author', 'author_email', 'author_name', 'job_title', 'job_description', 'location', 'company_name', 'company_logo', 'company_logo_url', 'job_type', 'salary', 'category', 'job_tags', 'required_experience', 'required_skills', 'required_education', 'required_languages', 'created_at','company_logo_url']
+        fields = ['id','author', 'author_email', 'author_name', 'title', 'job_description', 'location', 'company_name', 'company_logo', 'company_logo_url', 'job_type', 'salary', 'category', 'job_tags', 'required_experience', 'required_skills', 'required_education', 'required_languages', 'created_at','company_logo_url']
         read_only_fields = ['author', 'created_at', 'updated_at']
     def get_company_logo_url(self, obj):
         return obj.company_logo.url if obj.company_logo else None
@@ -43,3 +44,18 @@ class JobApplicationSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("You do not have permission to update this application.")
 
         return super().update(instance, validated_data)
+    
+
+class BookmarkSerializer(serializers.ModelSerializer):
+   
+    class Meta:
+        model = Bookmark
+        fields = ['id', 'job', 'created_at']
+
+class MyApplicationDetailSerializer(serializers.ModelSerializer):
+    job = JobPostSerializer(read_only=True)  
+
+    class Meta:
+        model = JobApplication
+        fields = ['id', 'job', 'status', 'applied_at', 'full_name', 'email', 'phone', 'cv', 'profile_image']
+        read_only_fields = ['job', 'status', 'applied_at']

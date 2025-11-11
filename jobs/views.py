@@ -1,14 +1,15 @@
 
 from rest_framework import generics
 from rest_framework.exceptions import NotFound
-from .serializers import JobPostSerializer, JobApplicationSerializer
+from .serializers import JobPostSerializer, JobApplicationSerializer, BookmarkSerializer, MyApplicationDetailSerializer
 from users.permissions import IsRecruiter
 from users.permissions import IsJobSeeker
 from rest_framework import generics, filters
-from .models import JobPost, JobApplication
+from .models import JobPost, JobApplication, Bookmark
 from .permisions import IsAuthorOrReadOnly, IsApplicantOrReadOnly
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.exceptions import ValidationError
+from users.permissions import IsRecruiter, IsJobSeeker
 
 class JobPostCreateView(generics.CreateAPIView):
     queryset = JobPost.objects.all()
@@ -114,3 +115,40 @@ class RecruiterJobApplicationsView(generics.ListAPIView):
             raise PermissionDenied("You are not allowed to view applications for this job.")
 
         return JobApplication.objects.filter(job=job).order_by('-applied_at')
+    
+
+
+class MyJobPostsView(generics.ListAPIView):
+    serializer_class = JobPostSerializer
+    permission_classes = [IsRecruiter] 
+
+    def get_queryset(self):
+        return JobPost.objects.filter(author=self.request.user)
+class BookmarkCreateView(generics.CreateAPIView):
+    queryset = Bookmark.objects.all()
+    serializer_class = BookmarkSerializer
+    permission_classes = [IsJobSeeker]
+
+    def perform_create(self, serializer):
+        user = self.request.user
+        job = serializer.validated_data['job']
+        
+       
+        if Bookmark.objects.filter(user=user, job=job).exists():
+            
+            raise ValidationError("You have already bookmarked this job.")
+        serializer.save(user=user)
+
+class MyBookmarksView(generics.ListAPIView):
+    serializer_class = BookmarkSerializer
+    permission_classes = [IsJobSeeker]
+
+    def get_queryset(self):
+        return Bookmark.objects.filter(user=self.request.user)
+
+class MyJobApplicationsView(generics.ListAPIView):
+    serializer_class = MyApplicationDetailSerializer
+    permission_classes = [IsJobSeeker]
+
+    def get_queryset(self):
+        return JobApplication.objects.filter(applicant=self.request.user)
