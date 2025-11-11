@@ -13,4 +13,8 @@ def send_welcome_email(sender, instance, created, **kwargs):
         from_email = settings.EMAIL_HOST_USER
         recipient_list = [instance.email]
 
-        send_mail(subject, message, from_email, recipient_list)
+        try:
+            send_mail(subject, message, from_email, recipient_list)
+        except Exception as e:
+            print(f"Error sending welcome email to {instance.email}: {e}")
+            
