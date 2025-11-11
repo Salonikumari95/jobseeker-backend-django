@@ -11,7 +11,6 @@ def user_directory_path(instance, filename):
 
 
 class UserProfile(models.Model):
-   
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
     # add bio and phone number
     experience = models.TextField(blank=True, null=True)
