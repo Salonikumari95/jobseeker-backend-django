@@ -6,7 +6,12 @@ from .views import (
     UserProfileView,
     LogoutView,
     RequestPasswordResetOTPView,
-    PasswordResetView
+    PasswordResetView,
+    seeker_dashboard,
+    recruiter_dashboard,
+    template_logout
+    ,login_view,
+    change_application_status,
 )
 
 urlpatterns = [
@@ -14,7 +19,10 @@ urlpatterns = [
     path('login/', EmailLoginView.as_view(), name='login'),
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('profile/', UserProfileView.as_view(), name='user-profile'),
+
     path('logout/', LogoutView.as_view(), name='logout'),
-    # path('password-reset/request-otp/', RequestPasswordResetOTPView.as_view(), name='request-password-otp'),
-    # path('password-reset/confirm/', PasswordResetView.as_view(), name='password-reset'),
+     path('application/<int:app_id>/change-status/', change_application_status, name='change_application_status'),
+    
+
+
 ]

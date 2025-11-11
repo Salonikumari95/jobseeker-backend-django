@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2>All Job Posts</h2>
+{% if messages %}
+    {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+    {% endfor %}
+{% endif %}
+<div class="row">
+    {% for job in jobs %}
+    <div class="col-md-6 col-lg-4 mb-4">
+        <div class="card h-100 shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title">{{ job.title }}</h5>
+                <h6 class="card-subtitle mb-2 text-muted">{{ job.company_name }}</h6>
+                <p class="card-text">{{ job.job_description|truncatewords:25 }}</p>
+                <p class="mb-1"><strong>Location:</strong> {{ job.location }}</p>
+                <p class="mb-1"><strong>Type:</strong> {{ job.get_job_type_display }}</p>
+                <form method="post" action="">
+                    {% csrf_token %}
+                    <input type="hidden" name="job_id" value="{{ job.id }}">
+                   {% if user.is_authenticated and job.id in applied_job_ids %}
+    <button class="btn btn-secondary btn-sm" disabled>Already Applied</button>
+{% else %}
+    <button class="btn btn-primary btn-sm">Apply</button>
+{% endif %}
+                </form>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <p>No jobs available.</p>
+    {% endfor %}
+</div>
+{% endblock %}

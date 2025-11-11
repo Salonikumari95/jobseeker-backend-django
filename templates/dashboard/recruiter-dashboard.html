@@ -1,0 +1,149 @@
+{% extends 'base.html' %}
+
+{% block sidebar %}
+<a href="{% url 'recruiter_dashboard' %}">Dashboard</a>
+<a href="{% url 'job-create' %}">Post Job</a>
+<a href="{% url 'my-posts' %}">Manage Jobs</a>
+<a href="#">Applicants</a>
+<a href="{% url 'logout' %}">Logout</a>
+{% endblock %}
+
+{% block content %}
+<h2>Welcome {{ user_name }}!</h2>
+<hr class="mb-4">
+<div class="row mb-4 g-3">
+    <div class="col-6 col-md-2">
+        <div class="card text-white bg-primary text-center shadow-sm">
+            <div class="card-body">
+                <h6 class="card-title mb-1" style="font-size:1rem;">Jobs Posted</h6>
+                <div style="font-size:2rem;font-weight:bold;">{{ jobs|length }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-2">
+        <div class="card text-white bg-info text-center shadow-sm">
+            <div class="card-body">
+                <h6 class="card-title mb-1" style="font-size:1rem;">Applications</h6>
+                <div style="font-size:2rem;font-weight:bold;">{{ total_applications }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-2">
+        <div class="card text-white bg-warning text-center shadow-sm">
+            <div class="card-body">
+                <h6 class="card-title mb-1" style="font-size:1rem;">Pending</h6>
+                <div style="font-size:2rem;font-weight:bold;">{{ pending_count }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-2">
+        <div class="card text-white bg-success text-center shadow-sm">
+            <div class="card-body">
+                <h6 class="card-title mb-1" style="font-size:1rem;">Accepted</h6>
+                <div style="font-size:2rem;font-weight:bold;">{{ accepted_count }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-2">
+        <div class="card text-white bg-danger text-center shadow-sm">
+            <div class="card-body">
+                <h6 class="card-title mb-1" style="font-size:1rem;">Rejected</h6>
+                <div style="font-size:2rem;font-weight:bold;">{{ rejected_count }}</div>
+            </div>
+        </div>
+    </div>
+</div>
+<h4>My Job Posts</h4>
+{% if jobs %}
+    <div class="table-responsive mb-4">
+        <table class="table table-striped table-hover align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>Title</th>
+                    <th>Company</th>
+                    <th>Posted On</th>
+                    <th>Applications</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for job in jobs %}
+                <tr>
+                    <td>{{ job.title }}</td>
+                    <td>{{ job.company_name }}</td>
+                    <td>{{ job.created_at|date:"Y-m-d" }}</td>
+                    <td>
+                        <span class="badge bg-info text-dark">
+                            {{ job.applications.count }}
+                        </span>
+                    </td>
+                    <td>
+                        <a href="{% url 'job-update' job.pk %}" class="btn btn-sm btn-outline-primary">Edit</a>
+                        <a href="{% url 'job-delete' job.pk %}" class="btn btn-sm btn-outline-danger">Delete</a>
+                        <a href="{% url 'job-applications-for-job' job.pk %}" class="btn btn-sm btn-outline-success">View Applications</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% else %}
+    <p>You have not posted any jobs yet.</p>
+{% endif %}
+<h4>All Applicants for My Jobs</h4>
+{% if applications %}
+    <div class="table-responsive">
+        <table class="table table-bordered table-hover">
+            <thead class="table-light">
+                <tr>
+                    <th>Applicant</th>
+                    <th>Email</th>
+                    <th>Phone</th>
+                    <th>Job Title</th>
+                    <th>Status</th>
+                    <th>Applied At</th>
+                    <th>CV</th>
+                    <th>Profile Image</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for app in applications %}
+                <tr>
+    <td>{{ app.full_name }}</td>
+    <td>{{ app.email }}</td>
+    <td>{{ app.phone }}</td>
+    <td>{{ app.job.title }}</td>
+    <td>
+        <form method="post" action="{% url 'change_application_status' app.id %}">
+            {% csrf_token %}
+            <select name="status" class="form-select form-select-sm" onchange="this.form.submit()">
+                <option value="pending" {% if app.status == 'pending' %}selected{% endif %}>Pending</option>
+                <option value="accepted" {% if app.status == 'accepted' %}selected{% endif %}>Accepted</option>
+                <option value="rejected" {% if app.status == 'rejected' %}selected{% endif %}>Rejected</option>
+            </select>
+        </form>
+    </td>
+    <td>{{ app.applied_at|date:"Y-m-d H:i" }}</td>
+    <td>
+        {% if app.cv %}
+            <a href="{{ app.cv.url }}" target="_blank">View CV</a>
+        {% else %}
+            N/A
+        {% endif %}
+    </td>
+    <td>
+        {% if app.profile_image %}
+            <img src="{{ app.profile_image.url }}" alt="Profile" width="40" height="40" style="object-fit:cover;border-radius:50%;">
+        {% else %}
+            N/A
+        {% endif %}
+    </td>
+</tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% else %}
+    <p>No applications yet.</p>
+{% endif %}
+{% endblock %}
