@@ -7,7 +7,12 @@ from .views import (
     JobPostUpdateView,
     JobPostDeleteView,
     JobApplicationDeleteView,
-  RecruiterJobApplicationsView
+  RecruiterJobApplicationsView,
+  MyJobApplicationsView,
+  MyJobPostsView,
+  BookmarkCreateView,
+  MyBookmarksView,
+  
 )
 
 urlpatterns = [
@@ -19,8 +24,10 @@ urlpatterns = [
      path('post/<int:pk>/delete/', JobPostDeleteView.as_view(), name='job-delete'),
     path('applications/<int:pk>/delete/', JobApplicationDeleteView.as_view(), name='application-delete'),
   path('post/<int:job_id>/applied-applications/', RecruiterJobApplicationsView.as_view(), name='job-applications-for-job'), 
-  # we need a view for see all post by one recruiter
-  # admin view
-  # dashboard view for both recruiter and jobseeker
-  # bookmark job posts 
+   path('my-applications/', MyJobApplicationsView.as_view(), name='my-applications'),
+  path('my-posts/', MyJobPostsView.as_view(), name='my-posts'),
+   path('bookmarks/', BookmarkCreateView.as_view(), name='bookmark-create'),
+    path('my-bookmarks/', MyBookmarksView.as_view(), name='my-bookmarks'),
+
+
 ]

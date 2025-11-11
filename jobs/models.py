@@ -42,20 +42,35 @@ class JobPost(models.Model):
     author_name = models.CharField(max_length=255, blank=True, null=True)
     
     def __str__(self):
-        return self.job_title
+        return self.title
 
 
 class JobApplication(models.Model):
     job = models.ForeignKey(JobPost, on_delete=models.CASCADE, related_name='applications')
     applicant = models.ForeignKey(User, on_delete=models.CASCADE, related_name='applications')
-    full_name = models.CharField(max_length=255)
-    email = models.EmailField()
+    full_name = models.CharField(max_length=255,)
+    email = models.EmailField(blank=False, null=False)
     phone = models.CharField(max_length=15)
     cv = CloudinaryField('cv') 
     profile_image = CloudinaryField('profile_image')  
     applied_at = models.DateTimeField(auto_now_add=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
-    # make a unique together constraint to prevent multiple applications to the same job by the same user
+    
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['job', 'applicant'], name='unique_job_application')
+        ]
+        
     def __str__(self):
-        return f"{self.full_name} applied for {self.job.job_title}"
-    # make a model to view my applications
+        return f"{self.full_name} applied for {self.job.title}"
+
+class Bookmark(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='bookmarks')
+    job = models.ForeignKey('JobPost', on_delete=models.CASCADE, related_name='bookmarked_by')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('user', 'job') 
+
+    def __str__(self):
+        return f"{self.user.username} bookmarked {self.job.title}"
