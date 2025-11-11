@@ -119,12 +119,16 @@ class RequestPasswordResetOTPView(APIView):
             profile.otp_created_at = timezone.now()
             profile.save()
             
-            send_mail(
+            try :
+                send_mail(
                 subject="Your Password Reset OTP",
                 message=f"Your OTP for password reset is: {otp}. It expires in 2 minutes.",
                 from_email=settings.DEFAULT_FROM_EMAIL,
                 recipient_list=[email],
             )
+            except Exception as e:
+                print(f"Error sending email: {e} otp is {otp}")
+                
 
             return Response({"detail": "OTP sent to email."}, status=status.HTTP_200_OK)
         except User.DoesNotExist:
