@@ -16,8 +16,11 @@ from .models import UserProfile
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.exceptions import TokenError
-
+ 
 from jobs.models import JobApplication, Bookmark, JobPost
+from django.contrib.auth import authenticate, login
+from django.urls import reverse
+from django.contrib.auth.decorators import login_required
 
 import random
 from django.utils import timezone
@@ -179,29 +182,72 @@ class PasswordResetView(APIView):
             return Response({"detail": "User with this email does not exist."}, status=status.HTTP_400_BAD_REQUEST)
 
 
+
 @login_required
 def seeker_dashboard(request):
     user = request.user
-    bookmarks = Bookmark.objects.filter(user=user)
     applications = JobApplication.objects.filter(applicant=user)
-    return render(request, "dashboard/seeker-dashboard.html", {
-        "user_name": user.first_name or user.username,
-        "bookmarks": bookmarks,
-        "applications": applications,
+    total_applications = applications.count()
+    pending_count = applications.filter(status='pending').count()
+    accepted_count = applications.filter(status='accepted').count()
+    rejected_count = applications.filter(status='rejected').count()
+    return render(request, 'dashboard/seeker-dashboard.html', {
+        'user_name': user.first_name or user.username,
+        'applications': applications,
+        'total_applications': total_applications,
+        'pending_count': pending_count,
+        'accepted_count': accepted_count,
+        'rejected_count': rejected_count,
     })
+
 
 
 @login_required
 def recruiter_dashboard(request):
     user = request.user
     jobs = JobPost.objects.filter(author=user)
-    return render(request, "dashboard/recruiter-dashboard.html", {
-        "user_name": user.first_name or user.username,
-        "jobs": jobs,
+    applications = JobApplication.objects.filter(job__author=user)
+    total_applications = applications.count()
+    return render(request, 'dashboard/recruiter-dashboard.html', {
+        'user_name': user.first_name + ' ' + user.last_name if user.first_name and user.last_name else user.username,
+        'jobs': jobs,
+        'applications': applications,
+        'total_applications': total_applications,
     })
-
 
 @login_required
 def template_logout(request):
     logout(request)
-    return redirect('/auth/login/')
+    return redirect('login')
+
+
+def login_view(request):
+    error = None
+    if request.method == "POST":
+        email = request.POST.get("email")
+        password = request.POST.get("password")
+        user = authenticate(request, username=email, password=password)
+        if user is not None:
+            login(request, user)
+            # Get user role
+            role = getattr(user.profile, "role", None)
+            if role == "recruiter" or role == "job_giver":
+                return redirect(reverse("recruiter_dashboard"))
+            else:
+                return redirect(reverse("seeker_dashboard"))
+        else:
+            error = "Invalid email or password."
+    return render(request, "login.html", {"error": error})
+# Add this import at the top
+from django.views.decorators.http import require_POST
+from django.shortcuts import get_object_or_404
+
+@require_POST
+@login_required
+def change_application_status(request, app_id):
+    application = get_object_or_404(JobApplication, id=app_id, job__author=request.user)
+    new_status = request.POST.get('status')
+    if new_status in ['pending', 'accepted', 'rejected']:
+        application.status = new_status
+        application.save()
+    return redirect('recruiter_dashboard')

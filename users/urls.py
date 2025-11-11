@@ -10,6 +10,8 @@ from .views import (
     seeker_dashboard,
     recruiter_dashboard,
     template_logout
+    ,login_view,
+    change_application_status,
 )
 
 urlpatterns = [
@@ -19,6 +21,8 @@ urlpatterns = [
     path('profile/', UserProfileView.as_view(), name='user-profile'),
 
     path('logout/', LogoutView.as_view(), name='logout'),
+     path('application/<int:app_id>/change-status/', change_application_status, name='change_application_status'),
     
+
 
 ]

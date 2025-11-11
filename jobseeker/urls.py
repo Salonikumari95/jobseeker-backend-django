@@ -4,8 +4,9 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib.auth.decorators import login_required
 from django.views.generic import RedirectView
-from users.views import seeker_dashboard, recruiter_dashboard  # aapke views yahan se import
+from users.views import seeker_dashboard, recruiter_dashboard, login_view, change_application_status
 
+from users.views import login_view
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('auth/', include('users.urls')),
@@ -16,6 +17,10 @@ urlpatterns = [
 
     # Root URL redirect to seeker dashboard
     path('', RedirectView.as_view(url='/dashboard/seeker/', permanent=False)),
+    path('logout/', login_view, name='template_logout'),
+    
+    path('application/<int:app_id>/change-status/', change_application_status, name='change_application_status'),
+    path('login-view/', login_view, name='template_login'),
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

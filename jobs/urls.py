@@ -12,7 +12,7 @@ from .views import (
   MyJobPostsView,
   BookmarkCreateView,
   MyBookmarksView,
-  
+  all_jobs_view,
 )
 
 urlpatterns = [
@@ -28,4 +28,7 @@ urlpatterns = [
     path('my-posts/', MyJobPostsView.as_view(), name='my-posts'),
     path('bookmarks/', BookmarkCreateView.as_view(), name='bookmark-create'),
     path('my-bookmarks/', MyBookmarksView.as_view(), name='my-bookmarks'),
+    # Additional URL patterns can be added here
+     path('all/', all_jobs_view, name='all-jobs'),
+
 ]
