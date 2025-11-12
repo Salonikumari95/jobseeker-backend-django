@@ -1,5 +1,5 @@
 from rest_framework import generics, permissions, status
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -16,11 +16,10 @@ from .models import UserProfile
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.exceptions import TokenError
- 
+
 from jobs.models import JobApplication, Bookmark, JobPost
 from django.contrib.auth import authenticate, login
 from django.urls import reverse
-from django.contrib.auth.decorators import login_required
 
 import random
 from django.utils import timezone
@@ -29,6 +28,10 @@ from django.conf import settings
 from django.contrib.auth import logout
 from datetime import timedelta
 
+from community.models import CommunityPost
+
+from django.views.decorators.http import require_POST
+from django.core.paginator import Paginator  
 
 class RegisterView(generics.CreateAPIView):
     queryset = User.objects.all()
@@ -191,6 +194,12 @@ def seeker_dashboard(request):
     pending_count = applications.filter(status='pending').count()
     accepted_count = applications.filter(status='accepted').count()
     rejected_count = applications.filter(status='rejected').count()
+
+    post_list = CommunityPost.objects.all().order_by('-created_at')
+    paginator = Paginator(post_list, 5)  # 5 posts per page
+    page_number = request.GET.get('page')
+    latest_posts = paginator.get_page(page_number)
+
     return render(request, 'dashboard/seeker-dashboard.html', {
         'user_name': user.first_name or user.username,
         'applications': applications,
@@ -198,6 +207,10 @@ def seeker_dashboard(request):
         'pending_count': pending_count,
         'accepted_count': accepted_count,
         'rejected_count': rejected_count,
+         'latest_posts': latest_posts,
+        'page_number': page_number,
+        'paginator': paginator,
+        
     })
 
 
@@ -208,11 +221,19 @@ def recruiter_dashboard(request):
     jobs = JobPost.objects.filter(author=user)
     applications = JobApplication.objects.filter(job__author=user)
     total_applications = applications.count()
+    post_list = CommunityPost.objects.all().order_by('-created_at')
+    paginator = Paginator(post_list, 5) # 5 posts per page
+    page_number = request.GET.get('page')
+    latest_posts = paginator.get_page(page_number)
+
     return render(request, 'dashboard/recruiter-dashboard.html', {
         'user_name': user.first_name + ' ' + user.last_name if user.first_name and user.last_name else user.username,
         'jobs': jobs,
         'applications': applications,
         'total_applications': total_applications,
+        'latest_posts': latest_posts,
+        'page_number': page_number,
+        'paginator': paginator,
     })
 
 @login_required
@@ -229,7 +250,7 @@ def login_view(request):
         user = authenticate(request, username=email, password=password)
         if user is not None:
             login(request, user)
-            # Get user role
+            # yaha pr role le lenge
             role = getattr(user.profile, "role", None)
             if role == "recruiter" or role == "job_giver":
                 return redirect(reverse("recruiter_dashboard"))
@@ -238,9 +259,6 @@ def login_view(request):
         else:
             error = "Invalid email or password."
     return render(request, "login.html", {"error": error})
-# Add this import at the top
-from django.views.decorators.http import require_POST
-from django.shortcuts import get_object_or_404
 
 @require_POST
 @login_required

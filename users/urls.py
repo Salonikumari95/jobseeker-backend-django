@@ -1,4 +1,4 @@
-from django.urls import path
+from django.urls import path,include
 from rest_framework_simplejwt.views import TokenRefreshView
 from .views import (
     RegisterView,
@@ -22,6 +22,7 @@ urlpatterns = [
 
     path('logout/', LogoutView.as_view(), name='logout'),
      path('application/<int:app_id>/change-status/', change_application_status, name='change_application_status'),
+     
     
 
 

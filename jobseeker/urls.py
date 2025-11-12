@@ -15,12 +15,13 @@ urlpatterns = [
     path('dashboard/seeker/', login_required(seeker_dashboard), name='seeker_dashboard'),
     path('dashboard/recruiter/', login_required(recruiter_dashboard), name='recruiter_dashboard'),
 
-    # Root URL redirect to seeker dashboard
+   
     path('', RedirectView.as_view(url='/dashboard/seeker/', permanent=False)),
     path('logout/', login_view, name='template_logout'),
     
     path('application/<int:app_id>/change-status/', change_application_status, name='change_application_status'),
     path('login-view/', login_view, name='template_login'),
+    path('', include('community.urls')),
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

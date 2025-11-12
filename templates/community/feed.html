@@ -1,0 +1,47 @@
+{% for post in posts %}
+  <div class="card mb-3">
+    <div class="card-body">
+      <p>{{ post.content }}</p>
+     {% if post.media %}
+  {% if ".mp4" in post.media.url|lower %}
+    <video controls width="320"><source src="{{ post.media.url }}"></video>
+  {% else %}
+    <img src="{{ post.media.url }}" width="320"/>
+  {% endif %}
+{% endif %}
+      <div>
+        <form method="post" action="{% url 'community-like' post.id %}">
+          {% csrf_token %}
+          <button type="submit">Like ({{ post.likes.count }})</button>
+        </form>
+        <form method="post" action="{% url 'community-comment' post.id %}">
+          {% csrf_token %}
+          <input type="text" name="text" placeholder="Add comment">
+          <button type="submit">Comment</button>
+        </form>
+      </div>
+      <div>
+        {% for comment in post.comments.all %}
+          <p><b>{{ comment.author.username }}</b>: {{ comment.text }}</p>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+{% endfor %}
+<div class="pagination">
+  <span class="step-links">
+      {% if latest_posts.has_previous %}
+          <a href="?page=1">&laquo; first</a>
+          <a href="?page={{ latest_posts.previous_page_number }}">previous</a>
+      {% endif %}
+
+      <span class="current">
+          Page {{ latest_posts.number }} of {{ latest_posts.paginator.num_pages }}.
+      </span>
+
+      {% if latest_posts.has_next %}
+          <a href="?page={{ latest_posts.next_page_number }}">next</a>
+          <a href="?page={{ latest_posts.paginator.num_pages }}">last &raquo;</a>
+      {% endif %}
+  </span>
+</div>
