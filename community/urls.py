@@ -7,7 +7,7 @@ from .views import (
     CommunityLikeAPIView,
     CommunityPostRetrieveUpdateDestroyAPIView,
     CommunityCommentRetrieveDestroyAPIView,
-    CommunityLikeDestroyAPIView,
+   
 )
 # view endpoints
 # urlpatterns= [
