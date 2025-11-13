@@ -60,7 +60,7 @@ class CommunityCommentListCreateAPIView(generics.ListCreateAPIView):
     def perform_create(self, serializer):
         post_id = self.kwargs['post_id']
         serializer.save(author=self.request.user, post_id=post_id)
-
+        
 class CommunityLikeAPIView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
@@ -99,3 +99,4 @@ class CommunityPostRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
            
             raise PermissionDenied("You can only delete your own posts.")
         instance.delete()
+        return Response({'detail': 'Comment deleted.'}, status=status.HTTP_200_OK)
