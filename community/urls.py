@@ -5,6 +5,9 @@ from .views import (
     CommunityPostListCreateAPIView,
     CommunityCommentListCreateAPIView,
     CommunityLikeAPIView,
+    CommunityPostRetrieveUpdateDestroyAPIView,
+    CommunityCommentRetrieveDestroyAPIView,
+    CommunityLikeDestroyAPIView,
 )
 # view endpoints
 # urlpatterns= [
@@ -19,4 +22,7 @@ urlpatterns = [
     path('posts/', CommunityPostListCreateAPIView.as_view(), name='api-community-posts'),
     path('posts/<int:post_id>/comments/', CommunityCommentListCreateAPIView.as_view(), name='api-community-comments'),
     path('posts/<int:post_id>/like/', CommunityLikeAPIView.as_view(), name='api-community-like'),
+    path('posts/<int:pk>/', CommunityPostRetrieveUpdateDestroyAPIView.as_view(), name='api-community-post-detail'),
+    path('comments/<int:pk>/', CommunityCommentRetrieveDestroyAPIView.as_view(), name='api-community-comment-detail'),
+  
 ]

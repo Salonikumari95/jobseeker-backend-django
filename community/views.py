@@ -5,11 +5,12 @@ from django.shortcuts import render, redirect, get_object_or_404
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import status
+from rest_framework import status, permissions
+from django.core.exceptions import PermissionDenied
 from rest_framework import generics, permissions
 from .models import CommunityPost, CommunityComment, CommunityLike
 from .serializers import CommunityPostSerializer, CommunityCommentSerializer, CommunityLikeSerializer
-
+from rest_framework.generics import RetrieveUpdateDestroyAPIView
 def community_feed(request):
     posts = CommunityPost.objects.all().order_by('-created_at')
     return render(request, 'community/feed.html', {'posts': posts})
@@ -69,3 +70,32 @@ class CommunityLikeAPIView(APIView):
         if not created:
             return Response({'detail': 'Already liked.'}, status=status.HTTP_400_BAD_REQUEST)
         return Response({'detail': 'Liked.'}, status=status.HTTP_201_CREATED)
+    def delete(self, request, post_id):
+        try:
+            like = CommunityLike.objects.get(post_id=post_id, user=request.user)
+            like.delete()
+            return Response({'detail': 'Like removed.'}, status=status.HTTP_204_NO_CONTENT)
+        except CommunityLike.DoesNotExist:
+            return Response({'detail': 'Like not found.'}, status=status.HTTP_404_NOT_FOUND)
+        
+class CommunityCommentRetrieveDestroyAPIView(RetrieveUpdateDestroyAPIView):
+    queryset = CommunityComment.objects.all()
+    serializer_class = CommunityCommentSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def perform_destroy(self, instance):
+        if instance.author != self.request.user:
+            
+            raise PermissionDenied("You can only delete your own comments.")
+        instance.delete()
+
+class CommunityPostRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
+    queryset = CommunityPost.objects.all()
+    serializer_class = CommunityPostSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def perform_destroy(self, instance):
+        if instance.author != self.request.user:
+           
+            raise PermissionDenied("You can only delete your own posts.")
+        instance.delete()
