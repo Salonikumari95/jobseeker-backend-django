@@ -43,7 +43,26 @@ INSTALLED_APPS = [
     'jobs',
     'rest_framework_simplejwt.token_blacklist',
     'community',
+    'channels',
+    'chat',
 ]
+
+ASGI_APPLICATION = "jobseeker.asgi.application"
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [("127.0.0.1", 6379)],
+        },
+    },
+}
+
+# settings.py
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels.layers.InMemoryChannelLayer"
+    }
+}
 
 
 # MIDDLEWARE

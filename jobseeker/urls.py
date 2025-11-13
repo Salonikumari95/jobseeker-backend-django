@@ -22,6 +22,8 @@ urlpatterns = [
     path('application/<int:app_id>/change-status/', change_application_status, name='change_application_status'),
     path('login-view/', login_view, name='template_login'),
     path('community/', include('community.urls')),
+    path('chat/', include('chat.urls')),
+
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
