@@ -15,8 +15,9 @@ class CommunityCommentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CommunityComment
-        fields = ['id', 'post', 'author', 'text', 'created_at']
-
+        fields = '__all__'
+        read_only_fields = ['author', 'post', 'created_at']
+        
 class CommunityLikeSerializer(serializers.ModelSerializer):
     user = serializers.StringRelatedField(read_only=True)
 
