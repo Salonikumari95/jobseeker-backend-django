@@ -2,7 +2,7 @@ from .models import CommunityPost, CommunityComment, CommunityLike
 from django.views.decorators.http import require_POST
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect, get_object_or_404
-
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -42,13 +42,16 @@ def comment_post(request, post_id):
 class CommunityPostListCreateAPIView(generics.ListCreateAPIView):
     queryset = CommunityPost.objects.all().order_by('-created_at')
     serializer_class = CommunityPostSerializer
-
+    permission_classes = [permissions.IsAuthenticated]
+    pagination_class = PageNumberPagination 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
+   
+
 
 class CommunityCommentListCreateAPIView(generics.ListCreateAPIView):
     serializer_class = CommunityCommentSerializer
-
+    permission_classes = [permissions.IsAuthenticated]
     def get_queryset(self):
         post_id = self.kwargs['post_id']
         return CommunityComment.objects.filter(post_id=post_id).order_by('created_at')
