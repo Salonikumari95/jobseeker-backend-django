@@ -1,15 +1,20 @@
 import json
 import base64
 from channels.generic.websocket import AsyncWebsocketConsumer
-from django.contrib.auth.models import User
+from channels.db import database_sync_to_async
 from django.core.files.base import ContentFile
-from .models import Message
+from .models import Conversation, Message
 
 
 class ChatConsumer(AsyncWebsocketConsumer):
     async def connect(self):
-        self.room_name = self.scope['url_route']['kwargs']['room_name']
-        self.room_group_name = f"chat_{self.room_name}"
+        self.user = self.scope["user"]
+        if self.user.is_anonymous:
+            await self.close()
+            return
+
+        self.conversation_id = self.scope['url_route']['kwargs']['conversation_id']
+        self.room_group_name = f"chat_{self.conversation_id}"
 
         await self.channel_layer.group_add(self.room_group_name, self.channel_name)
         await self.accept()
@@ -19,54 +24,52 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
     async def receive(self, text_data):
         data = json.loads(text_data)
-        sender_id = data['sender']
-        receiver_id = data['receiver']
-        message_text = data.get('message', '')
-        image_data = data.get('image', None)
-        file_data = data.get('file', None)
-        file_name = data.get('file_name', None)
+        text = data.get("text", "")
+        image_data = data.get("image", None)
+        file_data = data.get("file", None)
+        file_name = data.get("file_name", None)
 
-        sender = await self.get_user(sender_id)
-        receiver = await self.get_user(receiver_id)
+        conversation = await self.get_conversation(self.conversation_id)
+        if not conversation:
+            await self.send(text_data=json.dumps({"error": "Conversation not found"}))
+            return
 
-        message_obj = await self.save_message(sender, receiver, message_text, image_data, file_data, file_name)
+        message = await self.save_message(conversation, self.user, text, image_data, file_data, file_name)
 
+        # Broadcast message to all participants
         await self.channel_layer.group_send(
             self.room_group_name,
             {
-                'type': 'chat_message',
-                'sender': sender.username,
-                'message': message_text,
-                'image_url': message_obj.image.url if message_obj.image else None,
-                'file_url': message_obj.file.url if message_obj.file else None,
-                'file_name': file_name,
+                "type": "chat_message",
+                "message": {
+                    "id": message.id,
+                    "sender": self.user.username,
+                    "text": message.text,
+                    "image_url": message.image.url if message.image else None,
+                    "file_url": message.file.url if message.file else None,
+                    "timestamp": str(message.timestamp),
+                }
             }
         )
 
     async def chat_message(self, event):
-        await self.send(text_data=json.dumps({
-            'sender': event['sender'],
-            'message': event['message'],
-            'image_url': event.get('image_url'),
-            'file_url': event.get('file_url'),
-            'file_name': event.get('file_name'),
-        }))
+        await self.send(text_data=json.dumps(event["message"]))
 
-    @staticmethod
-    async def get_user(user_id):
-        return User.objects.get(id=user_id)
+    @database_sync_to_async
+    def get_conversation(self, conversation_id):
+        try:
+            return Conversation.objects.get(id=conversation_id)
+        except Conversation.DoesNotExist:
+            return None
 
-    @staticmethod
-    async def save_message(sender, receiver, message, image_data, file_data, file_name):
-        msg = Message(sender=sender, receiver=receiver, message=message)
+    @database_sync_to_async
+    def save_message(self, conversation, sender, text, image_data, file_data, file_name):
+        msg = Message(conversation=conversation, sender=sender, text=text)
         if image_data:
-            format, imgstr = image_data.split(';base64,')
-            ext = format.split('/')[-1]
-            msg.image.save(f"chat_{sender.id}_{receiver.id}.{ext}", ContentFile(base64.b64decode(imgstr)), save=False)
-
-        if file_data:
-            file_content = ContentFile(base64.b64decode(file_data))
-            msg.file.save(file_name, file_content, save=False)
-
+            fmt, imgstr = image_data.split(";base64,")
+            ext = fmt.split("/")[-1]
+            msg.image.save(f"{sender.id}_{conversation.id}.{ext}", ContentFile(base64.b64decode(imgstr)), save=False)
+        if file_data and file_name:
+            msg.file.save(file_name, ContentFile(base64.b64decode(file_data)), save=False)
         msg.save()
         return msg
