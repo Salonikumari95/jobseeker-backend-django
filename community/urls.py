@@ -1,4 +1,4 @@
-from .views import community_feed, create_community_post, like_post, comment_post
+# from .views import community_feed, create_community_post, like_post, comment_post
 from django.urls import path
 
 from .views import (
@@ -7,6 +7,7 @@ from .views import (
     CommunityLikeAPIView,
     CommunityPostRetrieveUpdateDestroyAPIView,
     CommunityCommentRetrieveDestroyAPIView,
+    
    
 )
 # view endpoints
