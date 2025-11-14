@@ -4,7 +4,7 @@ def classify_comment(text):
     
     try:
         response = requests.post(
-            "https://comment-classifier-0ep9.onrender.com/check-comment",
+             os.getenv("COMMENT_CLASSIFICATION_API_URL") ,
             json={"text": text},
             headers={"Content-Type": "application/json"}
         )
