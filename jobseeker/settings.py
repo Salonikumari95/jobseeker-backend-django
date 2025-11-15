@@ -44,14 +44,17 @@ INSTALLED_APPS = [
     'community',
     'channels',
     'chat',
+    'django_filters',
+    'corsheaders',
+
 ]
 
-ASGI_APPLICATION = "jobseeker.asgi.application"
+
 CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
         "CONFIG": {
-            "hosts": [("127.0.0.1", 6379)],  # Redis server
+            "hosts": [ os.getenv("REDIS_URL")],  # Redis server
         },
     },
 }
@@ -93,6 +96,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'jobseeker.wsgi.application'
 
+ASGI_APPLICATION = "jobseeker.asgi.application"
 db_url = os.getenv("DATABASE_URL")
 
 DATABASES = {
@@ -176,4 +180,3 @@ DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 # DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', EMAIL_HOST_USER)
 
  
-LOGIN_URL = '/login-view/'

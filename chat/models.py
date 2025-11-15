@@ -1,6 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
-from django import get_object_or_404
+
 class Conversation(models.Model):
     participants = models.ManyToManyField(User, related_name='conversations')
     updated_at = models.DateTimeField(auto_now=True)
@@ -20,6 +20,3 @@ class Message(models.Model):
 
     class Meta:
         ordering = ('timestamp',)
-def room(request, conversation_id):
-    conversation = get_object_or_404(Conversation, id=conversation_id)
-    return render(request, "chat/room.html", {"room_name": conversation.id})
