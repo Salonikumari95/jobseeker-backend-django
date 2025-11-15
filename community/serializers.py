@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from .models import CommunityPost, CommunityComment, CommunityLike
 
+
 class CommunityPostSerializer(serializers.ModelSerializer):
     author = serializers.StringRelatedField(read_only=True)
     likes_count = serializers.IntegerField(source='likes.count', read_only=True)
@@ -14,10 +15,13 @@ class CommunityCommentSerializer(serializers.ModelSerializer):
     author = serializers.StringRelatedField(read_only=True)
 
     class Meta:
+
         model = CommunityComment
         fields = '__all__'
-        read_only_fields = ['author', 'post', 'created_at']
-        
+        read_only_fields = [
+            'author', 'post', 'created_at',
+            'is_spam', 'spam_confidence', 'is_profane', 'profanity_confidence'
+        ] 
 class CommunityLikeSerializer(serializers.ModelSerializer):
     user = serializers.StringRelatedField(read_only=True)
 
