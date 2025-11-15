@@ -60,7 +60,7 @@ class EmailTokenObtainPairSerializer(TokenObtainPairSerializer):
 class UserProfileSerializer(serializers.ModelSerializer):
     profile_image_url = serializers.SerializerMethodField()
     education_image_url = serializers.SerializerMethodField()
-  
+    company_logo_url = serializers.SerializerMethodField()
     cv_url = serializers.SerializerMethodField()
     
     class Meta:
@@ -74,7 +74,8 @@ class UserProfileSerializer(serializers.ModelSerializer):
             "education_image",
            
             "cv",
-           
+            "company_name",
+            "company_logo_url",
             "experience",
             "education_text",
             "skills",
@@ -90,6 +91,8 @@ class UserProfileSerializer(serializers.ModelSerializer):
     
     def get_cv_url(self, obj):
         return obj.cv.url if obj.cv else None
+    def get_company_logo_url(self, obj):
+        return obj.company_logo.url if obj.company_logo else None
     
     
 class RequestPasswordResetOTPSerializer(serializers.Serializer):

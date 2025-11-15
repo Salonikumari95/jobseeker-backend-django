@@ -25,6 +25,8 @@ class UserProfile(models.Model):
     role = models.CharField(max_length=50, blank=True, null=True)
     profile_image = CloudinaryField('image', blank=True, null=True)
     education_image = CloudinaryField('image', blank=True, null=True)
+    company_name = models.CharField(max_length=255, blank=True, null=True)
+    company_logo = CloudinaryField('image', blank=True, null=True)
 
     # OTP fields for password reset
     password_reset_otp = models.CharField(max_length=6, blank=True, null=True)
