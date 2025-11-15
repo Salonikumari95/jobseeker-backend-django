@@ -4,7 +4,7 @@ def classify_comment(text):
     
     try:
         response = requests.post(
-            os.getenv("COMMENT_CLASSIFICATION_API_URL") ,
+             os.getenv("COMMENT_CLASSIFICATION_API_URL") ,
             json={"text": text},
             headers={"Content-Type": "application/json"}
         )
