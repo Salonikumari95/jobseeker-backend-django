@@ -5,7 +5,8 @@ from rest_framework import serializers
 from .models import Conversation, Message
 from django.contrib.auth.models import User
 from users.models import UserProfile
-
+from users.serializers import UserProfileSerializer
+from django.db.models import Q
 class MessageSerializer(serializers.ModelSerializer):
     sender_first_name = serializers.CharField(source='sender.first_name', read_only=True)
     sender_last_name = serializers.CharField(source='sender.last_name', read_only=True)
@@ -58,7 +59,10 @@ class ConversationSerializer(serializers.ModelSerializer):
     def get_other_participant(self, obj):
         request = self.context.get('request')
         if request and hasattr(request, 'user'):
-            others = obj.participants.exclude(id=request.user.id)
-            if others.exists():
-                return ParticipantSerializer(others.first()).data
+            if obj.user1 == request.user:
+                other = obj.user2
+            else:
+                other = obj.user1
+            if other:
+                return ParticipantSerializer(other).data
         return None
