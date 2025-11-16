@@ -46,7 +46,7 @@ INSTALLED_APPS = [
     'chat',
     'django_filters',
     'corsheaders',
-    'corsheaders',
+ 
     'django_filters',
 
 ]
