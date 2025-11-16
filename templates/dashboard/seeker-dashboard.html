@@ -1,0 +1,117 @@
+{% extends 'base.html' %}
+
+{% block sidebar %}
+<a href="{% url 'seeker_dashboard' %}">Dashboard</a>
+<a href="{% url 'user-profile' %}">My Profile</a>
+<a href="{% url 'my-bookmarks' %}">Saved Jobs</a>
+<a href="{% url 'my-applications' %}">My Applications</a>
+<a href="{% url 'logout' %}">Logout</a>
+{% endblock %}
+
+{% block content %}
+<h2>Welcome {{ user_name }}!</h2>
+
+<div class="row mb-4">
+    <div class="col-md-3 mb-2">
+        <div class="card text-white bg-info h-100">
+            <div class="card-body">
+                <h5 class="card-title">Total Applications</h5>
+                <p class="card-text" style="font-size:2rem;">{{ total_applications }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-2">
+        <div class="card text-white bg-warning h-100">
+            <div class="card-body">
+                <h5 class="card-title">Pending Review</h5>
+                <p class="card-text" style="font-size:2rem;">{{ pending_count }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-2">
+        <div class="card text-white bg-success h-100">
+            <div class="card-body">
+                <h5 class="card-title">Accepted</h5>
+                <p class="card-text" style="font-size:2rem;">{{ accepted_count }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-2">
+        <div class="card text-white bg-danger h-100">
+            <div class="card-body">
+                <h5 class="card-title">Rejected</h5>
+                <p class="card-text" style="font-size:2rem;">{{ rejected_count }}</p>
+            </div>
+        </div>
+    </div><h4 class="mt-4">Latest Community Posts</h4>
+{% if latest_posts %}
+  {% for post in latest_posts %}
+    <div class="card mb-3">
+      <div class="card-body">
+        <strong>{{ post.author }}</strong> <span class="text-muted">{{ post.created_at|date:"Y-m-d H:i" }}</span>
+        <p>{{ post.content }}</p>
+        {% if post.media %}
+  {% if ".mp4" in post.media.url|lower %}
+    <video controls width="320"><source src="{{ post.media.url }}"></video>
+  {% else %}
+    <img src="{{ post.media.url }}" width="320"/>
+  {% endif %}
+{% endif %}
+        <div>
+          <span>Likes: {{ post.likes.count }}</span> | 
+          <span>Comments: {{ post.comments.count }}</span>
+        </div>
+      </div>
+    </div>
+  {% endfor %}
+  <a href="{% url 'community-feed' %}" class="btn btn-link">See all community posts</a>
+{% else %}
+  <p>No community posts yet.</p>
+{% endif %}
+</div>
+</div>
+
+<h4>My Applications</h4>
+{% if applications %}
+    <div class="table-responsive">
+        <table class="table table-bordered table-hover">
+            <thead class="table-light">
+                <tr>
+                    <th>Job Title</th>
+                    <th>Company</th>
+                    <th>Status</th>
+                    <th>Applied At</th>
+                    <th>CV</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for app in applications %}
+                <tr>
+                    <td>{{ app.job.title }}</td>
+                    <td>{{ app.job.company_name }}</td>
+                    <td>
+                        <span class="badge 
+                            {% if app.status == 'pending' %}bg-warning
+                            {% elif app.status == 'accepted' %}bg-success
+                            {% elif app.status == 'rejected' %}bg-danger
+                            {% endif %}">
+                            {{ app.status|capfirst }}
+                        </span>
+                    </td>
+                    <td>{{ app.applied_at|date:"Y-m-d H:i" }}</td>
+                    <td>
+                        {% if app.cv %}
+                            <a href="{{ app.cv.url }}" target="_blank">View CV</a>
+                        {% else %}
+                            N/A
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% else %}
+    <p>You have not applied to any jobs yet.</p>
+{% endif %}
+{% endblock %}

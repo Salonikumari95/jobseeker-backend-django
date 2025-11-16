@@ -11,11 +11,13 @@ def user_directory_path(instance, filename):
 
 
 class UserProfile(models.Model):
-   
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
-    
+    # add bio and phone number
     experience = models.TextField(blank=True, null=True)
     education_text = models.TextField(blank=True, null=True)
+    bio_data = models.TextField(blank=True, null=True)
+    address= models.CharField(max_length=255, blank=True, null=True)
+    phone = models.CharField(max_length=15, blank=True, null=True)
     
     languages = models.TextField(blank=True, null=True)
     cv = CloudinaryField('file', blank=True, null=True)
@@ -23,6 +25,8 @@ class UserProfile(models.Model):
     role = models.CharField(max_length=50, blank=True, null=True)
     profile_image = CloudinaryField('image', blank=True, null=True)
     education_image = CloudinaryField('image', blank=True, null=True)
+    company_name = models.CharField(max_length=255, blank=True, null=True)
+    company_logo = CloudinaryField('image', blank=True, null=True)
 
     # OTP fields for password reset
     password_reset_otp = models.CharField(max_length=6, blank=True, null=True)
