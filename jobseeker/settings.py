@@ -46,6 +46,8 @@ INSTALLED_APPS = [
     'chat',
     'django_filters',
     'corsheaders',
+    'corsheaders',
+    'django_filters',
 
 ]
 
@@ -64,6 +66,8 @@ CHANNEL_LAYERS = {
 
 # MIDDLEWARE
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
+    
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',  # for static file serving
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -73,7 +77,8 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
-
+CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_CREDENTIALS = True
 
 # ROOT CONFIGURATION
 ROOT_URLCONF = 'jobseeker.urls'

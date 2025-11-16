@@ -86,6 +86,8 @@ class EmailLoginView(TokenObtainPairView):
                 "languages": profile.languages,
                 "cv": profile.cv.url if profile.cv else None,
                 "role": profile.role,
+                "company_name": profile.company_name,
+                "company_logo": profile.company_logo.url if profile.company_logo else None,
             }
             user_data["profile"] = profile_data
         except UserProfile.DoesNotExist:
