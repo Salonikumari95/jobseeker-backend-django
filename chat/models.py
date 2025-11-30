@@ -10,6 +10,14 @@ class Conversation(models.Model):
 
     updated_at = models.DateTimeField(auto_now=True)
 
+    
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user1', 'user2'],
+                name='unique_conversation_users_ordered'
+            ),
+        ]
     def clean(self):
         if self.user1 == self.user2:
             raise ValidationError("A conversation must be between two different users.")
