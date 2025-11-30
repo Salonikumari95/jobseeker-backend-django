@@ -10,8 +10,23 @@ class ChatConsumer(AsyncWebsocketConsumer):
         if not self.scope["user"].is_authenticated:
             await self.close()
             return
+        # Check if user is part of the conversation
+        if not await self.is_participant(self.conversation_id, self.scope["user"]):
+            await self.send(text_data=json.dumps({
+                "error": "You are not a participant in this conversation."
+            }))
+            await self.close()
+            return
         await self.channel_layer.group_add(self.room_group_name, self.channel_name)
         await self.accept()
+
+    @sync_to_async
+    def is_participant(self, conversation_id, user):
+        try:
+            conversation = Conversation.objects.get(id=conversation_id)
+        except Conversation.DoesNotExist:
+            return False
+        return conversation.user1_id == user.id or conversation.user2_id == user.id
 
     async def disconnect(self, close_code):
         await self.channel_layer.group_discard(self.room_group_name, self.channel_name)

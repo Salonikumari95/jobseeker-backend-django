@@ -49,16 +49,18 @@ class ConversationCreateAPIView(APIView):
             user2 = User.objects.get(id=user2_id)
         except User.DoesNotExist:
             return Response({'error': 'User does not exist.'}, status=status.HTTP_400_BAD_REQUEST)
+        # Always order users by id to avoid duplicates
+        first_user, second_user = (user1, user2) if user1.id < user2.id else (user2, user1)
 
         # Check for existing conversation between these two users
         conversation = Conversation.objects.filter(
-            (Q(user1=user1) & Q(user2=user2)) | (Q(user1=user2) & Q(user2=user1))
+            user1=first_user, user2=second_user
         ).first()
         if conversation:
             serializer = ConversationSerializer(conversation, context={'request': request})
             return Response(serializer.data, status=status.HTTP_200_OK)
 
         # Create new conversation
-        conversation = Conversation.objects.create(user1=user1, user2=user2)
+        conversation = Conversation.objects.create(user1=first_user, user2=second_user)
         serializer = ConversationSerializer(conversation, context={'request': request})
         return Response(serializer.data, status=status.HTTP_201_CREATED)
