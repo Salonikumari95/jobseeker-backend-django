@@ -12,33 +12,64 @@ from .models import CommunityPost, CommunityComment, CommunityLike
 from .serializers import CommunityPostSerializer, CommunityCommentSerializer, CommunityLikeSerializer
 from rest_framework.generics import RetrieveUpdateDestroyAPIView
 from .utils import classify_comment
-# def community_feed(request):
-#     posts = CommunityPost.objects.all().order_by('-created_at')
-#     return render(request, 'community/feed.html', {'posts': posts})
+from django.core.paginator import Paginator
+def community_feed(request):
+    posts_list = CommunityPost.objects.all().order_by('-created_at')
+    paginator = Paginator(posts_list, 5)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
 
-# @login_required
-# def create_community_post(request):
-#     if request.method == 'POST':
-#         content = request.POST.get('content')
-#         media = request.FILES.get('media')
-#         CommunityPost.objects.create(author=request.user, content=content, media=media)
-#         return redirect('community-feed')
-#     return render(request, 'community/create_post.html')
+    posts_with_comments = []
+    for post in page_obj.object_list:
+        comments_list = post.comments.all().order_by('created_at')
+        comment_page_number = request.GET.get(f'comment_page_{post.id}', 1)
+        comment_paginator = Paginator(comments_list, 3)
+        comments_page_obj = comment_paginator.get_page(comment_page_number)
+        # Use stored fields, do NOT call classify_comment here
+        comments_with_badge = []
+        for comment in comments_page_obj.object_list:
+            comments_with_badge.append({
+                'author': comment.author,
+                'text': comment.text,
+                'is_spam': comment.is_spam,
+                'is_profane': comment.is_profane,
+            })
+        posts_with_comments.append({
+            'post': post,
+            'comments': comments_with_badge,
+            'comments_page_obj': comments_page_obj,
+        })
 
-# @login_required
-# @require_POST
-# def like_post(request, post_id):
-#     post = get_object_or_404(CommunityPost, id=post_id)
-#     CommunityLike.objects.get_or_create(post=post, user=request.user)
-#     return redirect('community-feed')
+    return render(request, 'community/feed.html', {
+        'posts_with_comments': posts_with_comments,
+        'page_obj': page_obj,
+    })
+@login_required
+def create_community_post(request):
+    if request.method == 'POST':
+        content = request.POST.get('content')
+        media = request.FILES.get('media')
+        CommunityPost.objects.create(author=request.user, content=content, media=media)
+        return redirect('community-feed')
+    return render(request, 'community/create_post.html')
 
-# @login_required
-# @require_POST
-# def comment_post(request, post_id):
-#     post = get_object_or_404(CommunityPost, id=post_id)
-#     text = request.POST.get('text')
-#     CommunityComment.objects.create(post=post, author=request.user, text=text)
-#     return redirect('community-feed')
+@login_required
+@require_POST
+def like_post(request, post_id):
+    post = get_object_or_404(CommunityPost, id=post_id)
+    like, created = CommunityLike.objects.get_or_create(post=post, user=request.user)
+    if not created:
+        like.delete()
+    
+    return redirect('community-feed')
+
+@login_required
+@require_POST
+def comment_post(request, post_id):
+    post = get_object_or_404(CommunityPost, id=post_id)
+    text = request.POST.get('text')
+    CommunityComment.objects.create(post=post, author=request.user, text=text)
+    return redirect('community-feed')
 
 
 class CommunityPostListCreateAPIView(generics.ListCreateAPIView):
