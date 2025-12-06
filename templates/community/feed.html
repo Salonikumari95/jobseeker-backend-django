@@ -1,47 +1,83 @@
-{% for post in posts %}
+
+{% extends 'base.html' %}
+{% block content %}
+<div class="container">
+  <h2>Community Feed</h2>
+{% for item in posts_with_comments %}
   <div class="card mb-3">
     <div class="card-body">
-      <p>{{ post.content }}</p>
-     {% if post.media %}
-  {% if ".mp4" in post.media.url|lower %}
-    <video controls width="320"><source src="{{ post.media.url }}"></video>
-  {% else %}
-    <img src="{{ post.media.url }}" width="320"/>
-  {% endif %}
-{% endif %}
+      <p>{{ item.post.content }}</p>
+      {% if item.post.media %}
+        {% if ".mp4" in item.post.media.url|lower %}
+          <video controls width="320"><source src="{{ item.post.media.url }}"></video>
+        {% else %}
+          <img src="{{ item.post.media.url }}" width="320"/>
+        {% endif %}
+      {% endif %}
       <div>
-        <form method="post" action="{% url 'community-like' post.id %}">
+        <form method="post" action="{% url 'community-like' item.post.id %}">
           {% csrf_token %}
-          <button type="submit">Like ({{ post.likes.count }})</button>
+          <button type="submit">Like ({{ item.post.likes.count }})</button>
         </form>
-        <form method="post" action="{% url 'community-comment' post.id %}">
+        <form method="post" action="{% url 'community-comment' item.post.id %}">
           {% csrf_token %}
           <input type="text" name="text" placeholder="Add comment">
           <button type="submit">Comment</button>
         </form>
       </div>
-      <div>
-        {% for comment in post.comments.all %}
-          <p><b>{{ comment.author.username }}</b>: {{ comment.text }}</p>
+            <div>
+        {% for comment in item.comments %}
+          <p>
+            <b>{{ comment.author.get_full_name }}</b>: {{ comment.text }}
+            {% if comment.is_spam %}
+              <span class="badge bg-danger">Spam</span>
+            {% endif %}
+            {% if comment.is_profane %}
+              <span class="badge bg-warning text-dark">Profanity</span>
+            {% endif %}
+          </p>
+          <span style="font-size: small;"> ({{ comment.text }}) </span>
+          <hr>
         {% endfor %}
+
+        <div class="pagination">
+          {% if item.comments_page_obj.has_previous %}
+            <a href="?page={{ page_obj.number }}&comment_page_{{ item.post.id }}={{ item.comments_page_obj.previous_page_number }}">Previous</a>
+          {% endif %}
+          {% for page_number in item.comments_page_obj.paginator.page_range %}
+            {% if page_number == item.comments_page_obj.number %}
+              <strong>{{ page_number }}</strong>
+            {% else %}
+              <a href="?page={{ page_obj.number }}&comment_page_{{ item.post.id }}={{ page_number }}">{{ page_number }}</a>
+            {% endif %}
+          {% endfor %}
+          {% if item.comments_page_obj.has_next %}
+            <a href="?page={{ page_obj.number }}&comment_page_{{ item.post.id }}={{ item.comments_page_obj.next_page_number }}">Next</a>
+          {% endif %}
+        </div>
       </div>
     </div>
   </div>
 {% endfor %}
+
 <div class="pagination">
-  <span class="step-links">
-      {% if latest_posts.has_previous %}
-          <a href="?page=1">&laquo; first</a>
-          <a href="?page={{ latest_posts.previous_page_number }}">previous</a>
-      {% endif %}
-
-      <span class="current">
-          Page {{ latest_posts.number }} of {{ latest_posts.paginator.num_pages }}.
-      </span>
-
-      {% if latest_posts.has_next %}
-          <a href="?page={{ latest_posts.next_page_number }}">next</a>
-          <a href="?page={{ latest_posts.paginator.num_pages }}">last &raquo;</a>
-      {% endif %}
-  </span>
+  {% if page_obj.has_previous %}
+    <a class="" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+  {% endif %}
+  {% for page_number in page_obj.paginator.page_range %}
+    {% if page_number == page_obj.number %}
+      <strong>{{ page_number }}</strong>
+    {% else %}
+      <a href="?page={{ page_number }}">{{ page_number }}</a>
+    {% endif %}
+  {% endfor %}
+  {% if page_obj.has_next %}
+    <a href="?page={{ page_obj.next_page_number }}">Next</a>
+  {% endif %}
 </div>
+</div>
+{% endblock %}
+{% block sidebar %}
+    <a href="{% if request.user.is_recruiter %}{% url 'recruiter_dashboard' %}{% else %}{% url 'seeker_dashboard' %}{% endif %}">Dashboard</a>
+    <a href="{% url 'community-feed' %}">Community Feed</a>
+{% endblock %}
