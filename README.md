@@ -97,7 +97,7 @@ MIT
 ## Maintainers
 
 - [Salonikumari95](https://github.com/Salonikumari95)
-- [mayank](https://github.com/mayank)
+- [mayank](https://github.com/Manny2706)
 
 ---
 
