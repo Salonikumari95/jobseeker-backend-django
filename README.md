@@ -7,8 +7,7 @@ This is the backend for the Jobseeker platform, built with Django. It provides A
 
 ## 🚀 Deployed Link
 
-**Live Demo:** [https://django-task-bgej.onrender.com](https://django-task-bgej.onrender.com)
-
+**Live Demo:**https://jobseeker-backend-django.onrender.com
 ## Features
 
 - User registration and authentication (JWT & session)
