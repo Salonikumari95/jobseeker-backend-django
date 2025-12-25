@@ -101,3 +101,32 @@ MIT
 ---
 
 **For any issues or feature requests, please open an issue on GitHub.**
+
+## Docker (Development)
+
+This repository includes a `Dockerfile` and a `docker-compose.yml` to run the application locally with Postgres and Redis.
+
+Prerequisites: `docker` and `docker-compose` installed.
+
+Build and run:
+
+```bash
+docker-compose build
+docker-compose up -d
+```
+
+for cloud data base 
+remove db and redis from docker-compose.yml
+
+The web application will be available at `http://localhost:8000`.
+
+Notes:
+- Copy `.env.example` to `.env` and set database credentials before `docker-compose up`.
+- The `entrypoint.sh` runs migrations and `collectstatic` on container start. For production you may prefer a different strategy.
+
+To stop and remove containers:
+
+```bash
+docker-compose down -v
+```
+

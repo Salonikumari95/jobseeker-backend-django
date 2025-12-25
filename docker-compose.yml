@@ -1,0 +1,59 @@
+version: '3.8'  # Compose file format version
+services:
+  web:  # The main Django application service
+    environment:
+      SECRET_KEY: ${SECRET_KEY} 
+      ALLOWED_HOSTS: ${ALLOWED_HOSTS}
+      DATABASE_ENGINE: ${DATABASE_ENGINE}
+      DATABASE_NAME: ${DB_NAME}
+      DATABASE_USERNAME: ${DB_USER}
+      DATABASE_PASSWORD: ${DB_PASSWORD}
+      DATABASE_HOST: ${DB_HOST}
+      DATABASE_PORT: ${DB_PORT}
+    
+    build: .  # Build the Dockerfile in the current directory
+    container_name: jobseeker_web  # Name of the container
+    
+    
+        
+    # Mount the current project directory into the container for development convenience
+    volumes:
+      - .:/app
+    # Load environment variables from an .env file in the project root
+    env_file:
+      - .env
+    # Map container port 8000 to host port 8000
+    ports:
+      - "8000:8000"
+    # Ensure database and redis services are started before web (does not wait for readiness)
+    depends_on:
+      - db
+      - redis
+     
+
+
+  db:  # Postgres database service
+    image: postgres:15
+    # Environment variables for Postgres; use .env or defaults
+    environment:
+      POSTGRES_DB: jobseeker
+      POSTGRES_USER: jobseeker
+      POSTGRES_PASSWORD: jobseeker
+    ports:
+      - "5432:5432"  # Expose Postgres port
+    env_file:
+      - .env
+    # Persist Postgres data on the host using a named volume
+    volumes:
+      - postgres_data:/var/lib/postgresql
+    # Healthcheck to ensure Postgres is ready before web service starts
+    
+    restart: unless-stopped
+    
+
+  redis:  # Redis service used by Django Channels for channel layer
+    image: redis:7-alpine
+
+volumes:
+  # Named volume for PostgreSQL data persistence
+  postgres_data:

@@ -39,3 +39,23 @@ Thumbs.db
 # Migrations cache
 */migrations/__pycache__/
 
+# Test / coverage
+.coverage
+htmlcov/
+.pytest_cache/
+
+# Packaging / caches
+pip-wheel-metadata/
+pip-log.txt
+.cache/
+
+# MyPy / type checkers
+.mypy_cache/
+
+# Misc
+*.sqlite3
+dump.rdb
+jobseeker_db_backup.sql
+celerybeat-schedule
+
+
